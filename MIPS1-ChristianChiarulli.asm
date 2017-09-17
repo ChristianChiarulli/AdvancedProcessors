@@ -1,13 +1,15 @@
 
-.data #let processor know we will be submitting data to program now (these are currently in RAM)
+	.data #let processor know we will be submitting data to program now (these are currently in RAM)
 
-	number1: .asciiz "\nEnter the first number: "
-	number2: .asciiz "Enter the second number: "
-	operation: .asciiz "Operation: "
-	ans: .asciiz "\nAns: "
-	opChars: .byte '+','-','*','/'
+		number1: .asciiz "\nEnter the first number: "
+		number2: .asciiz "Enter the second number: "
+		operation: .asciiz "Operation: "
+		ans: .asciiz "\nAns: "
+		inf: .asciiz "infinity"
+		und: .asciiz "undefined"
+		opChars: .byte '+','-','*','/'
 
-.text #enables text input/output
+	.text #enables text input/output
 main:
 	
 	# prompt user for first input
@@ -45,10 +47,6 @@ main:
 	move $t2, $v0 # store operation input
 	
 	la $t3, opChars # load t3 with the array of characters
-	lb $t4, 0($t3) # load the plus operator from the char array
-	lb $t5, 1($t3)
-	lb $t6, 2($t3)
-	lb $t7, 3($t3)
 	
 	# show answer
 	li $v0, 4
@@ -57,10 +55,14 @@ main:
 	
 	########## Ready check what operation was chosen ##########
 	
+	lb $t4, 0($t3)
 	beq $t2, $t4, add
-	beq $t2, $t5, sub
-	beq $t2, $t6, mul
-	beq $t2, $t7, div
+	lb $t4, 1($t3)
+	beq $t2, $t4, sub
+	lb $t4, 2($t3)
+	beq $t2, $t4, mul
+	lb $t4, 3($t3)
+	beq $t2, $t4, div
 	
 	# add numbers
 	add:
@@ -92,8 +94,10 @@ main:
 	
 	j main
 	
-	# add numbers
+	# divide numbers
 	div:
+	
+	beqz $t1, infinite # check if denominator = 0
 	
 	div $t0, $t0, $t1
 	li $v0, 1
@@ -102,4 +106,20 @@ main:
 	
 	j main
 	
+	infinite:
 	
+	beqz $t0, undefined
+	
+	li $v0, 4 # ready to accept string
+	la $a0, inf # load the string the address
+	syscall # display
+	
+	j main
+	
+	undefined:
+	
+	li $v0, 4 # ready to accept string
+	la $a0, und # load the string the address
+	syscall # display
+	
+	j main
